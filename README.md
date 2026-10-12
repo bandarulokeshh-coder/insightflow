@@ -3,6 +3,9 @@
 **Build Battle 2026 · AI × Web Hackathon · Frontend Arena**
 Raw customer feedback → adapted, trustworthy data → prioritised decisions.
 
+🔗 **Live:** https://insightflow-sand-gamma.vercel.app ·
+[![CI](https://github.com/bandarulokeshh-coder/insightflow/actions/workflows/ci.yml/badge.svg)](https://github.com/bandarulokeshh-coder/insightflow/actions/workflows/ci.yml)
+
 > **Built on the official `BuildBattle_2026_Customer_Feedback_Dataset.csv` (7,000 rows).**
 > That dataset is **95.4% exact duplicates** (7,000 rows → 317 unique reviews), so
 > InsightFlow collapses them at ingest, measures its classifier against the organizer's
