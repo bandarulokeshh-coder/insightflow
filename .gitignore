@@ -1,0 +1,18 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.db
+.env
+
+# node
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# misc
+.DS_Store
+*.log
+smoke_test.db

@@ -1,0 +1,11 @@
+# ── InsightFlow backend ──────────────────────────────────────────
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlmodel==0.0.22
+pandas==2.2.3
+python-multipart==0.0.20
+python-dotenv==1.0.1
+
+# Adaption SDK — installs fine without a key; the app runs in DEMO mode
+# until ADAPTION_API_KEY is set. See app/adaption_service.py
+adaption>=0.9.0
