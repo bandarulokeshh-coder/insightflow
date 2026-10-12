@@ -1,0 +1,17 @@
+# Keep the Docker build context small.
+# The backend image needs only backend/requirements.txt, backend/app
+# and sample_data/ — everything else is excluded here.
+frontend/
+docs/
+**/__pycache__/
+**/*.py[cod]
+.venv/
+venv/
+.env
+*.db
+*.log
+.git/
+.github/
+node_modules/
+.next/
+out/

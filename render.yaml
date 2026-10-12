@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# InsightFlow backend — Render Blueprint
+#
+# Deploy:  https://dashboard.render.com/select-repo?repo=bandarulokeshh-coder/insightflow
+#          → "Blueprint" → apply. Render reads this file automatically.
+#
+# Why not Vercel for the backend? Vercel is serverless: read-only filesystem,
+# ~10 s function ceiling, and no long-lived process. The Feedback Refinery runs
+# Adaption jobs in daemon threads that write adapted rows back to SQLite, so it
+# needs a real persistent web service. Render gives us exactly that.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  - type: web
+    name: insightflow-api
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+
+    envVars:
+      # ── Dataset ───────────────────────────────────────────────────────────
+      # SQLite lives on the instance disk. The filesystem is ephemeral, so the
+      # app re-seeds itself from the committed sample_data/ CSV on every cold
+      # boot (see app/seed.py → seed_if_empty). Nothing extra to provision.
+      - key: DATABASE_URL
+        value: sqlite:///./insightflow.db
+
+      # ── CORS ──────────────────────────────────────────────────────────────
+      # " * " is the default; set this to the Vercel origin to lock it down.
+      - key: CORS_ORIGINS
+        value: "*"
+
+      # ── Adaption (Feedback Refinery) ──────────────────────────────────────
+      # Optional. Without a key the app runs the refinery in DEMO mode against
+      # a cached artifact and labels the mode explicitly in the UI — it never
+      # pretends a demo run was a live Adaption run.
+      - key: ADAPTION_API_KEY
+        sync: false

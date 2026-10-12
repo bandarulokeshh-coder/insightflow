@@ -74,7 +74,8 @@ Analysis engine → Dashboard · Recommendations · Issue tracker · Reports
 ## Quickstart
 
 ```bash
-# 1 ── Backend (FastAPI + SQLite, seeds itself with 362 sample rows)
+# 1 ── Backend (FastAPI + SQLite, seeds itself from the official dataset:
+#     7,000 rows → 317 unique after exact-dedup, ~3s on cold boot)
 cd backend
 pip install -r requirements.txt
 cp .env.example .env          # add ADAPTION_API_KEY when you have it
@@ -123,11 +124,41 @@ npm run verify   # loads all 6 routes in a real browser; fails on hydration
 (first run needs `npx playwright install chromium`)
 
 ### Deploying
+
+**Live now:** 🔗 **https://insightflow-sand-gamma.vercel.app** (frontend) ·
+📦 https://github.com/bandarulokeshh-coder/insightflow (repo)
+
 | Piece | Host | Notes |
 |---|---|---|
-| Frontend | Vercel | set `NEXT_PUBLIC_API_URL=https://your-api.onrender.com` |
+| Frontend | **Vercel** ✅ deployed | root dir `frontend`; set `NEXT_PUBLIC_API_URL` to the API origin |
+| Backend | **Render** (blueprint ready) | `render.yaml` included — see below |
 | Screenshots | `docs/screens/*.png` | captured at 1440px for the submission write-up |
-| Backend | Render / Railway | `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, set `ADAPTION_API_KEY`, `CORS_ORIGINS=*` |
+
+**Why the backend is not on Vercel.** Vercel is serverless: read-only filesystem,
+a ~10 s function ceiling and no long-lived process. The Feedback Refinery launches
+Adaption jobs in daemon threads that write adapted rows back to SQLite, so it needs
+a real persistent web service.
+
+**Deploy the backend (Render, free tier):**
+1. Open <https://dashboard.render.com/select-repo?repo=bandarulokeshh-coder/insightflow>
+2. **Blueprint** → Render reads `render.yaml` automatically → **Apply**
+3. Copy the resulting `https://insightflow-api-xxxx.onrender.com` URL
+
+**Then wire the frontend to it:**
+```bash
+cd frontend
+vercel env add NEXT_PUBLIC_API_URL production   # paste the Render URL
+vercel --prod
+```
+When `NEXT_PUBLIC_API_URL` is set, `lib/api.ts` uses it directly and the
+`localhost:8000` rewrite in `next.config.ts` disables itself — no code changes.
+
+`backend/Dockerfile` (build from the repo root) serves Fly.io / Railway / any
+Docker host. Cold-boot seeding takes ~3 s, so free-tier health checks pass.
+
+CI: `.github/workflows/ci.yml` runs the 24-check backend smoke test plus the
+frontend type-check and production build on every push.
+
 
 ---
 
@@ -161,7 +192,8 @@ npm run verify   # loads all 6 routes in a real browser; fails on hydration
 
 ```
 insightflow/
-├── sample_data/feedback.csv        # 362 messy rows (generated)
+├── sample_data/official_dataset.csv  # ★ 7,000 rows — the seed source (317 unique)
+├── sample_data/feedback.csv          # 362 multilingual rows — fallback seed only
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                 # FastAPI app, CORS, startup seed
@@ -172,6 +204,9 @@ insightflow/
 │   │   ├── seed.py  database.py
 │   │   └── routers/                # feedback · analytics · adaption · issues · reports
 │   └── scripts/                    # generate_sample_data.py · smoke_test.py
+├── render.yaml                     # backend blueprint → Render
+├── backend/Dockerfile              # build from repo root; Fly.io / Railway / Docker
+├── .github/workflows/ci.yml        # smoke test + type-check + build on every push
 └── frontend/
     ├── app/                        # dashboard · feedback · refinery · recommendations · issues · reports
     ├── components/                 # Sidebar · ui.tsx · charts.tsx (Recharts)
